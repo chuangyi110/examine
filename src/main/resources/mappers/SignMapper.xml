@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzdn.examine.dao.SignDao">
+    <insert id="insertWithEntity" parameterType="com.lzdn.examine.entity.SignEntity">
+        INSERT INTO app_sign
+        (`http_src`, `real_src`, `upload_user_id`, `upload_username`, `plate_number`,`md5`)
+        VALUES
+        (#{httpSrc}, #{realSrc}, #{uploadUserId}, #{uploadUsername}, #{plateNumber},#{md5});
+    </insert>
+    <select id="selectSignForOffsetPage" parameterType="int" resultType="com.lzdn.examine.entity.SignEntity">
+        select * from app_sign limit #{limit} offset #{offset}
+    </select>
+</mapper>

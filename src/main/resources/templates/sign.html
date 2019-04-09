@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/bootstrap-3.3.7-dist/css/bootstrap-theme.min.css" media="screen">
+    <link rel="stylesheet" href="/bootstrap-table-1.9.4.min.css">
+    <link rel="stylesheet" href="/jquery-confirm.min.css">
+    <script type="text/javascript" src="/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="/jquery-confirm.min.js"></script>
+    <script type="text/javascript" src="/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/bootstrap-table-1.9.4.min.js"></script>
+    <script type="text/javascript" src="/bootstrap-table-zh-CN-1.9.4.min.js"></script>
+    <script type="text/javascript" src="/common/common.js"></script>
+</head>
+<body>
+<div th:replace="common/header.html::header"></div>
+<!--/导航页-->
+<div class="container" style="background-color: #bce8f1">
+    <h1>签字信息管理</h1>
+    <div id="toolbar" class="btn-group">
+        <!--
+        <button id="btn_add" type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+        </button>
+
+        <button id="btn_edit" type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>修改
+        </button>
+        -->
+        <button id="btn_delete" type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>删除
+        </button>
+    </div>
+    <table id="tb_departments"></table>
+</div>
+<script>
+    $(function () {
+
+        //1.初始化Table
+        var oTable = new TableInit();
+        oTable.Init();
+
+        //2.初始化Button的点击事件
+        var oButtonInit = new ButtonInit();
+        oButtonInit.Init();
+
+    });
+
+
+    var TableInit = function () {
+        var oTableInit = new Object();
+        //初始化Table
+        oTableInit.Init = function () {
+            $('#tb_departments').bootstrapTable({
+                url: '/web/getSign',         //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                toolbar: '#toolbar',                //工具按钮用哪个容器
+                striped: true,                      //是否显示行间隔色
+                cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                sortable: false,                     //是否启用排序
+                sortOrder: "asc",                   //排序方式
+                //queryParams: oTableInit.queryParams,//传递参数（*）
+                sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+                pageNumber:1,                       //初始化加载第一页，默认第一页
+                pageSize: 10,                       //每页的记录行数（*）
+                pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+                search: false,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                strictSearch: true,
+                showColumns: true,                  //是否显示所有的列
+                showRefresh: true,                  //是否显示刷新按钮
+                minimumCountColumns: 2,             //最少允许的列数
+                clickToSelect: true,                //是否启用点击选中行
+                //height: 500,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                uniqueId: "ID",                     //每一行的唯一标识，一般为主键列
+                //showToggle:true,                    //是否显示详细视图和列表视图的切换按钮
+                cardView: false,                    //是否显示详细视图
+                detailView: false,                  //是否显示父子表
+                columns: [
+                    {checkbox: true},
+                    {field: 'id',title: 'id'},
+                    {field: 'httpSrc',title: '图片',formatter:"showFormatter"},
+                    {field: 'uploadUserId',title: '上传用户Id'},
+                    {field: 'uploadUsername',title: '用户名称'},
+                    {field: 'plateNumber',title: '对应车牌号'}
+                ],
+                onLoadSuccess:function(){
+                    console.info("加载成功");
+                },
+                onLoadError:function(){
+                    console.info("加载失败")
+                }
+            });
+        };
+
+        //得到查询的参数
+        oTableInit.queryParams = function (params) {
+            var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+                limit: params.limit,   //页面大小
+                offset: params.offset,  //页码
+                departmentname: $("#txt_search_departmentname").val(),
+                statu: $("#txt_search_statu").val()
+            };
+            return temp;
+        };
+        return oTableInit;
+    };
+
+    var ButtonInit = function () {
+        var oInit = new Object();
+        var postdata = {};
+
+        oInit.Init = function () {
+            //初始化页面上面的按钮事件
+            $("#btn_add").click(openAddWindow);
+            $("#btn_edit").click(openUpdateWindow);
+            $("#btn_delete").click(deleteAction);
+        };
+
+        return oInit;
+    };
+    function showFormatter(value,row,index){
+        return '<img src="'+value +'" style="width:100px"/>'
+    }
+    function openAddWindow(){
+        createDialog = $.dialog({
+            animationSpeed: 300,
+            title: '新增用户',
+            columnClass: 'xlarge',
+            content: 'url:/web/index/add',
+            onContentReady: function () {
+                initMaterialInput();
+                //$('select').select2();
+            }
+        });
+    }
+    function openUpdateWindow(){
+        var rows = $('#tb_departments').bootstrapTable('getSelections');
+        if (rows.length != 1) {
+            $.confirm({
+                title: false,
+                content: '请选择一条记录！',
+                autoClose: 'cancel|3000',
+                backgroundDismiss: true,
+                buttons: {
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        } else {
+            updateDialog = $.dialog({
+                animationSpeed: 300,
+                title: '编辑幻灯片',
+                columnClass: 'xlarge',
+                content: 'url:/web/index/update/' + rows[0].id,
+                onContentReady: function () {
+                    initMaterialInput();
+                    //$('select').select2();
+                }
+            });
+        }
+    }
+    // 删除
+    var deleteDialog;
+    function deleteAction() {
+        var rows =$('#tb_departments').bootstrapTable('getSelections');
+        if (rows.length == 0) {
+            $.confirm({
+                title: false,
+                content: '请至少选择一条记录！',
+                autoClose: 'cancel|3000',
+                backgroundDismiss: true,
+                buttons: {
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        } else {
+            deleteDialog = $.confirm({
+                type: 'red',
+                animationSpeed: 300,
+                title: false,
+                content: '确认删除该文章吗？',
+                buttons: {
+                    confirm: {
+                        text: '确认',
+                        btnClass: 'waves-effect waves-button',
+                        action: function () {
+                            var ids = new Array();
+                            for (var i in rows) {
+                                ids.push(rows[i].id);
+                            }
+                            $.ajax({
+                                type: 'get',
+                                url: '/web/sign/delete/' + ids.join("-"),
+                                success: function(result) {
+                                    console.log(result);
+                                    if (result.code != 1) {
+                                        if (result.data instanceof Array) {
+                                            $.each(result.data, function(index, value) {
+                                                $.confirm({
+                                                    theme: 'dark',
+                                                    animation: 'rotateX',
+                                                    closeAnimation: 'rotateX',
+                                                    title: false,
+                                                    content: value.errorMsg,
+                                                    buttons: {
+                                                        confirm: {
+                                                            text: '确认',
+                                                            btnClass: 'waves-effect waves-button waves-light'
+                                                        }
+                                                    }
+                                                });
+                                            });
+                                        } else {
+                                            $.confirm({
+                                                theme: 'dark',
+                                                animation: 'rotateX',
+                                                closeAnimation: 'rotateX',
+                                                title: false,
+                                                content: result.message,
+                                                buttons: {
+                                                    confirm: {
+                                                        text: '确认',
+                                                        btnClass: 'waves-effect waves-button waves-light'
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        $.confirm({
+                                            theme: 'dark',
+                                            animation: 'rotateX',
+                                            closeAnimation: 'rotateX',
+                                            title: false,
+                                            content: '删除成功'+result.data+'条'
+                                        });
+                                        deleteDialog.close();
+                                        $('#tb_departments').bootstrapTable('refresh');
+                                    }
+                                },
+                                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                    $.confirm({
+                                        theme: 'dark',
+                                        animation: 'rotateX',
+                                        closeAnimation: 'rotateX',
+                                        title: false,
+                                        content: textStatus,
+                                        buttons: {
+                                            confirm: {
+                                                text: '确认',
+                                                btnClass: 'waves-effect waves-button waves-light'
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    cancel: {
+                        text: '取消',
+                        btnClass: 'waves-effect waves-button'
+                    }
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>

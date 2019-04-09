@@ -1,0 +1,69 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/bootstrap-3.3.7-dist/css/bootstrap-theme.min.css" media="screen">
+    <script type="text/javascript" src="/jquery-3.3.1.min.js"></script>
+    <script type='text/javascript' src="/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container panel panel-default modal-dialog">
+        <div class="col-sm-12 panel-body " >
+            <div id="loginForm">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <div class="fg-line">
+                                <label for="username">账号</label>
+                                <input id="username" type="text" class="form-control" name="username" maxlength="50" placeholder="账号">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <div class="fg-line">
+                                <label for="password">密码</label>
+                                <input id="password" type="password" class="form-control" name="password" maxlength="200" placeholder="密码">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-default" onclick="login();">登陆</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    function login() {
+        var url = "/web/login";
+        var pwd = $('#password').val();
+        pwd = window.btoa(pwd);
+        $.ajax({
+            url:url,
+            type:'POST',
+            data:{
+                username:$('#username').val(),
+                password:pwd,
+            },
+            beforeSend:function () {
+            },
+            success:function (res) {
+                console.log(res)
+                if(res.code==0){
+                    location.href=res.url;
+                }else{
+                    alert(res.msg);
+                }
+            },
+            error:function (res) {
+
+            }
+        })
+    }
+</script>
+</html>

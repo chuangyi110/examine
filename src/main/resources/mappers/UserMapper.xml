@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzdn.examine.dao.UserDao">
+    <update id="stopUser" parameterType="string">
+      update app_user set statue=1 where username=#{username}
+    </update>
+    <select id="selectUserByLoginForm" parameterType="com.lzdn.examine.form.LoginForm" resultType="com.lzdn.examine.entity.UserEntity">
+        select * from app_user where username = #{username}
+    </select>
+    <select id="selectByUserForOffsetPage" parameterType="int" resultType="com.lzdn.examine.entity.UserEntity">
+        select * from app_user limit #{limit} offset #{offset}
+    </select>
+    <insert id="addUser" parameterType="com.lzdn.examine.entity.UserEntity">
+                INSERT INTO app_user
+                  (username, password, type, statue, binding_imei)
+                VALUES
+                  (#{username},#{password},#{type},#{statue},#{bindingImei})
+    </insert>
+    <select id="selectByUserId" parameterType="string" resultType="com.lzdn.examine.entity.UserEntity">
+        select * from app_user where id=#{id}
+    </select>
+</mapper>

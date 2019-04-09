@@ -1,0 +1,17 @@
+C:\Users\chuan>keytool -genkey -alias tomcat -keyalg RSA -keystore D:\slltest\test.keystore
+输入密钥库口令:asdasd
+再次输入新口令:asdasd
+您的名字与姓氏是什么?
+  [Unknown]:  a
+您的组织单位名称是什么?
+  [Unknown]:  a
+您的组织名称是什么?
+  [Unknown]:  a
+您所在的城市或区域名称是什么?
+  [Unknown]:  a
+您所在的省/市/自治区名称是什么?
+  [Unknown]:  a
+该单位的双字母国家/地区代码是什么?
+  [Unknown]:  a
+CN=a, OU=a, O=a, L=a, ST=a, C=a是否正确?
+  [否]:  y

@@ -1,0 +1,198 @@
+<div xmlns:th="http://www.w3.org/1999/xhtml">
+    <div id="updateDialog" class="crudDialog">
+        <div id="updateForm" method="post">
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="form-group">
+                        <div class="fg-line">
+                            <label for="username">名称</label>
+                            <input id="username" type="text" class="form-control" name="username" maxlength="50" placeholder="" th:value="${user.username}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label>
+                    <input type="radio"  class="changepwd" name="changepwd"  value="0">
+                    修改密码
+                </label>
+                <label>
+                    <input type="radio" class="changepwd" name="changepwd"  value="1" checked>
+                    不修改密码
+                </label>
+            </div>
+            <div id = "changepwd" style="display: none">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <div class="fg-line">
+                                <label for="password">密码</label>
+                                <input id="password" type="text" class="form-control" name="password" maxlength="200" placeholder="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="form-group">
+                            <div class="fg-line">
+                                <label for="repassword">再次输入密码</label>
+                                <input id="repassword" type="text" class="form-control" name="repassword" maxlength="200" placeholder="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="type" id="optionsRadios1" value="0" th:field="*{user.type}" >
+                    管理员
+                </label>
+                <label>
+                    <input type="radio" name="type" id="optionsRadios2" value="1" th:field="${user.type}">
+                    操作员
+                </label>
+            </div>
+            <div class="statue">
+                <label>
+                    <input type="radio" name="statue" value="0" th:field="*{user.statue}" >
+                    正常
+                </label>
+                <label>
+                    <input type="radio" name="statue" value="1" th:field="${user.statue}">
+                    锁定
+                </label>
+            </div>
+        </div>
+        <button type="button" class="btn btn-default" onclick="updateSubmit();">确定</button>
+    </div>
+</div>
+<script>
+    /*<![CDATA[*/
+    $(
+        $(".changepwd").change(
+            function(){
+                if($("input[name='changepwd']:checked").val()==0){
+                    $('#changepwd').show();
+                }else {
+                    $('#changepwd').hide();
+                }
+
+            }
+        )
+    )
+
+    function updateSubmit(){
+        var id = [[${user.id}]];
+        var data ;
+        if($("input[name='changepwd']:checked").val()==1){
+            data = {'username':$('#username').val()
+                ,'type':$("input[name='type']:checked").val()
+                ,'password':'[[${user.password}]]'
+                ,'statue':$("input[name='statue']:checked").val()
+            }
+        }else {
+            if($("#password").val()!=$("#repassword").val()){
+                alert("两次密码输入不一致！")
+                return;
+            }else{
+                data = {'username':$('#username').val()
+                    ,'password':btoa($('#password').val())
+                    ,'type':$("input[name='type']:checked").val()
+                    ,'statue':$("input[name='statue']:checked").val()
+                }
+            }
+        }
+
+        $.ajax({
+            type: 'post',
+            url: '/web/index/update/'+id,
+            data: data,
+            //data:{slideName:$('#sildeName').val(),slideRemark:$('#slideRemark').val()},
+            beforeSend: function() {
+                if ($('#username').val() == '') {
+                    $('#username').focus(errorinput('username'));
+                    return false;
+                }
+            },
+            success: function(result) {
+                if (result.code != 1) {
+                    if (result.data instanceof Array) {
+                        $.each(result.data, function(index, value) {
+                            $.confirm({
+                                theme: 'dark',
+                                animation: 'rotateX',
+                                closeAnimation: 'rotateX',
+                                title: false,
+                                content: result.data.message,
+                                buttons: {
+                                    confirm: {
+                                        text: '确认',
+                                        btnClass: 'waves-effect waves-button waves-light'
+                                    }
+                                }
+                            });
+                        });
+                    } else {
+                        $.confirm({
+                            theme: 'dark',
+                            animation: 'rotateX',
+                            closeAnimation: 'rotateX',
+                            title: false,
+                            content: result.data.message,
+                            buttons: {
+                                confirm: {
+                                    text: '确认',
+                                    btnClass: 'waves-effect waves-button waves-light'
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    $.confirm({
+                        theme: 'dark',
+                        animation: 'rotateX',
+                        closeAnimation: 'rotateX',
+                        title: false,
+                        content: '修改成功'+result.data+'条'
+                    });
+                    updateDialog.close();
+                    $('#tb_departments').bootstrapTable('refresh');
+                }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $.confirm({
+                    theme: 'dark',
+                    animation: 'rotateX',
+                    closeAnimation: 'rotateX',
+                    title: false,
+                    content: textStatus,
+                    buttons: {
+                        confirm: {
+                            text: '确认',
+                            btnClass: 'waves-effect waves-button waves-light'
+                        }
+                    }
+                });
+            }
+        });
+    }
+    function errorinput(obj){
+        var $t = $('#'+obj)
+        $t.css("background-color","#FFF68F");
+        $.confirm({
+            theme: 'dark',
+            animation: 'rotateX',
+            closeAnimation: 'rotateX',
+            title: false,
+            content: '信息填充不完整',
+            buttons: {
+                confirm: {
+                    text: '确认',
+                    btnClass: 'waves-effect waves-button waves-light'
+                }
+            }
+        });
+    }
+    /*]]>*/
+</script>
